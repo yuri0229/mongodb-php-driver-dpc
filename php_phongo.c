@@ -1895,7 +1895,19 @@ PHP_RINIT_FUNCTION(mongodb)
 
 PHP_RSHUTDOWN_FUNCTION(mongodb)
 {
+
+	(void)type; /* We don't care if we are loaded via dl() or extension= */
+
+	/* Destroy HashTable for persistent clients. The HashTable destructor will
+	 * destroy any mongoc_client_t objects that were created by this process. */
 	zend_hash_destroy(&MONGODB_G(pclients));
+
+	bson_mem_restore_vtable();
+	/* Cleanup after libmongoc */
+	mongoc_cleanup();
+
+	UNREGISTER_INI_ENTRIES();
+
 	return SUCCESS;
 }
 
